@@ -30,14 +30,11 @@ var LifestyleCategoryMap = map[Lifestyle][]Category{
 }
 
 func MakeDistribution(lifestyle []Lifestyle) map[Category]float32 {
-	base := 0.1
-	boost := 0.2
-	distribution := map[Category]float32{All: 0.1}
+	base := 0.3
+	boost := 0.05
+	distribution := map[Category]float32{All: float32(base)}
 	for _, ls := range lifestyle {
 		for _, cat := range LifestyleCategoryMap[ls] {
-			if _, ok := distribution[cat]; !ok {
-				distribution[cat] = float32(base)
-			}
 			distribution[cat] += float32(boost)
 		}
 	}

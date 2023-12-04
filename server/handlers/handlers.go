@@ -63,6 +63,50 @@ func AddCreditCard(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result.InsertedID)
 }
 
+func AddAllCreditCard(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var creditCardRequest []NewCreditCard
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&creditCardRequest)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Request malformed", http.StatusBadRequest)
+		return
+	}
+
+	creditCard := []interface{}{}
+	for _, cc := range creditCardRequest {
+		newCC := db.CreditCardDocument{
+			Name:     cc.Name,
+			Category: cc.Category,
+		}
+		for _, benefit := range cc.Benefits {
+			newCC.Benefits = append(newCC.Benefits, db.Benefit{
+				Category:   benefit.Category.String(),
+				Percentage: benefit.Percentage,
+				Fixed:      benefit.Fixed,
+				Limit:      benefit.Limit,
+			})
+		}
+		creditCard = append(creditCard, newCC)
+	}
+	client := db.GetMongoDBClient()
+	coll := client.Client.Database(db.DB_NAME).Collection(db.CREDIT_CARD_COLLECTION)
+	result, err := coll.InsertMany(context.TODO(), creditCard)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Failed to add doc", http.StatusInternalServerError)
+		return
+	}
+	// log.Printf("New credit card inserted %v", result.InsertedID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
 func GetCreditCards(w http.ResponseWriter, r *http.Request) {
 	creditCards, err := db.GetAllCreditCards()
 	if err != nil {

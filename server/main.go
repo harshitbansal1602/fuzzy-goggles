@@ -16,6 +16,7 @@ func main() {
 
 	// http.HandleFunc("/init", handlers.InitModels)
 	http.HandleFunc("/add", handlers.AddCreditCard)
+	http.HandleFunc("/addAll", handlers.AddAllCreditCard)
 	http.HandleFunc("/all", handlers.GetCreditCards)
 	http.HandleFunc("/top", handlers.GetTopCards)
 
